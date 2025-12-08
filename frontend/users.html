@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Users - Biometric Authentication System</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body id="user-management-page">
+  <div id="alert-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
+
+  <div class="wrapper">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-icon">🔐</div>
+        <div class="logo-text">BioAuth</div>
+      </div>
+      <ul class="nav-menu">
+        <li><a href="dashboard.html"><span class="nav-icon">📊</span>Dashboard</a></li>
+        <li><a href="register.html"><span class="nav-icon">👤</span>Register User</a></li>
+        <li><a href="users.html" class="active"><span class="nav-icon">👥</span>Manage Users</a></li>
+        <li><a href="capture.html"><span class="nav-icon">👆</span>Capture Module</a></li>
+        <li><a href="logs.html"><span class="nav-icon">📋</span>View Logs</a></li>
+        <li><a href="security.html"><span class="nav-icon">🛡️</span>Security Info</a></li>
+        <li style="border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: 20px; padding-top: 20px;">
+          <a id="logout-btn" href="#"><span class="nav-icon">🚪</span>Logout</a>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Navbar -->
+      <nav class="navbar">
+        <div class="navbar-logo">🔐 Biometric Fingerprint Authentication System</div>
+        <div class="navbar-user">
+          <span>Welcome, Admin</span>
+          <div class="user-avatar">A</div>
+        </div>
+      </nav>
+
+      <!-- Page Content -->
+      <div class="container" style="margin-top: 30px;">
+        <!-- Header -->
+        <div class="card mb-30">
+          <h2 class="card-title">User Management</h2>
+          <p class="card-subtitle">View, edit, and manage user accounts</p>
+        </div>
+
+        <!-- Filter & Search Bar -->
+        <div class="filter-bar" style="margin-bottom: 20px;">
+          <div class="search-box">
+            <input 
+              type="text" 
+              id="search-users" 
+              placeholder="Search by name, email, or User ID..."
+            >
+            <span class="search-icon">🔍</span>
+          </div>
+          <select class="form-select" id="status-filter" style="min-width: 150px;">
+            <option value="all">All Status</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        </div>
+
+        <!-- Users List -->
+        <div id="users-list" style="display: flex; flex-direction: column; gap: 10px;">
+          <!-- Populated by JavaScript -->
+        </div>
+
+        <!-- Empty State Message (if no users) -->
+        <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+          <p style="font-size: 14px;">Users will appear here after being registered in the system.</p>
+        </div>
+
+        <!-- Statistics Card -->
+        <div class="card" style="margin-top: 30px;">
+          <h3 style="margin-bottom: 20px; font-size: 18px;">User Statistics</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px;">
+            <div style="text-align: center;">
+              <div style="font-size: 32px; font-weight: bold; color: var(--primary-color);">4</div>
+              <p style="color: var(--text-secondary); margin-top: 5px;">Total Users</p>
+            </div>
+            <div style="text-align: center;">
+              <div style="font-size: 32px; font-weight: bold; color: var(--success-color);">3</div>
+              <p style="color: var(--text-secondary); margin-top: 5px;">Active Users</p>
+            </div>
+            <div style="text-align: center;">
+              <div style="font-size: 32px; font-weight: bold; color: var(--warning-color);">1</div>
+              <p style="color: var(--text-secondary); margin-top: 5px;">Inactive Users</p>
+            </div>
+            <div style="text-align: center;">
+              <div style="font-size: 32px; font-weight: bold; color: var(--secondary-color);">8</div>
+              <p style="color: var(--text-secondary); margin-top: 5px;">Total Fingerprints</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bulk Actions -->
+        <div class="card" style="margin-top: 20px;">
+          <h3 style="margin-bottom: 20px; font-size: 18px;">Bulk Actions</h3>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-secondary">📥 Import Users</button>
+            <button class="btn btn-secondary">📤 Export Users</button>
+            <button class="btn btn-secondary">🔄 Sync Database</button>
+            <button class="btn btn-warning" onclick="alert('Purge function would remove inactive users after 90 days')">🗑️ Purge Inactive</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- User Detail Modal -->
+  <div id="user-detail-modal" class="modal">
+    <!-- Content populated by JavaScript -->
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

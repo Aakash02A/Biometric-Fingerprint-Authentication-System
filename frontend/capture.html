@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Biometric Capture - Biometric Authentication System</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body id="capture-page">
+  <div id="alert-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
+
+  <div class="wrapper">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-icon">🔐</div>
+        <div class="logo-text">BioAuth</div>
+      </div>
+      <ul class="nav-menu">
+        <li><a href="dashboard.html"><span class="nav-icon">📊</span>Dashboard</a></li>
+        <li><a href="register.html"><span class="nav-icon">👤</span>Register User</a></li>
+        <li><a href="users.html"><span class="nav-icon">👥</span>Manage Users</a></li>
+        <li><a href="capture.html" class="active"><span class="nav-icon">👆</span>Capture Module</a></li>
+        <li><a href="logs.html"><span class="nav-icon">📋</span>View Logs</a></li>
+        <li><a href="security.html"><span class="nav-icon">🛡️</span>Security Info</a></li>
+        <li style="border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: 20px; padding-top: 20px;">
+          <a id="logout-btn" href="#"><span class="nav-icon">🚪</span>Logout</a>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Navbar -->
+      <nav class="navbar">
+        <div class="navbar-logo">🔐 Biometric Fingerprint Authentication System</div>
+        <div class="navbar-user">
+          <span>Welcome, Admin</span>
+          <div class="user-avatar">A</div>
+        </div>
+      </nav>
+
+      <!-- Page Content -->
+      <div class="container" style="margin-top: 30px;">
+        <!-- Header -->
+        <div class="card mb-30">
+          <h2 class="card-title">Biometric Capture Module</h2>
+          <p class="card-subtitle">Test fingerprint scanning and quality assessment</p>
+        </div>
+
+        <!-- Main Capture Area -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+          <!-- Scanner Section -->
+          <div class="card">
+            <h3 style="margin-bottom: 20px; font-size: 18px;">📱 Fingerprint Scanner</h3>
+
+            <!-- Scanner Display -->
+            <div style="background: linear-gradient(135deg, #667eea15, #764ba215); border-radius: 12px; padding: 60px 30px; text-align: center; margin-bottom: 20px; border: 2px dashed var(--primary-color);">
+              <div style="font-size: 100px; margin-bottom: 20px;">👆</div>
+              <h4 style="color: var(--text-primary); margin-bottom: 10px;">Ready to Scan</h4>
+              <p style="color: var(--text-secondary); margin-bottom: 20px;">Place your finger on the sensor and keep it still</p>
+              <button type="button" class="btn btn-primary btn-lg" id="capture-button" onclick="CaptureModule.startCapture()">
+                🔍 Start Capture
+              </button>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="quality-indicator">
+              <div class="quality-label">Capture Progress</div>
+              <div class="quality-bar">
+                <div class="quality-fill" id="capture-quality-bar"></div>
+              </div>
+              <div class="quality-text" id="capture-quality-text">Quality: -</div>
+            </div>
+
+            <!-- Clear Button -->
+            <button type="button" class="btn btn-secondary" id="clear-button" style="width: 100%; margin-top: 15px;">
+              🗑️ Clear Capture
+            </button>
+          </div>
+
+          <!-- Information Panel -->
+          <div class="card">
+            <h3 style="margin-bottom: 20px; font-size: 18px;">ℹ️ Capture Information</h3>
+
+            <div style="background: var(--light-bg); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
+                <span style="color: var(--text-secondary);">Sensor Status:</span>
+                <span style="font-weight: 600; color: var(--success-color);">✅ Ready</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
+                <span style="color: var(--text-secondary);">Connection:</span>
+                <span style="font-weight: 600; color: var(--success-color);">✅ Connected</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
+                <span style="color: var(--text-secondary);">Last Capture:</span>
+                <span style="font-weight: 600;">-</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-secondary);">Image Resolution:</span>
+                <span style="font-weight: 600;">500 DPI</span>
+              </div>
+            </div>
+
+            <!-- Quality Guidelines -->
+            <h4 style="margin-bottom: 15px; font-size: 14px; font-weight: 600;">Quality Guidelines:</h4>
+            <ul style="list-style: none; font-size: 13px; color: var(--text-secondary); line-height: 1.8;">
+              <li style="margin-bottom: 10px;">
+                <span style="color: var(--danger-color);">⚠️ Poor</span> - Below 70% quality
+              </li>
+              <li style="margin-bottom: 10px;">
+                <span style="color: var(--warning-color);">⚡ Good</span> - 70-85% quality
+              </li>
+              <li style="margin-bottom: 10px;">
+                <span style="color: var(--success-color);">✅ Excellent</span> - Above 85% quality
+              </li>
+            </ul>
+
+            <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid var(--success-color); padding: 15px; border-radius: 4px; margin-top: 15px; font-size: 13px; color: var(--text-secondary);">
+              <strong style="color: var(--text-primary);">💡 Tip:</strong> Ensure your finger is clean and dry for best results. Press gently on the sensor.
+            </div>
+          </div>
+        </div>
+
+        <!-- Advanced Options -->
+        <div class="card" style="margin-top: 30px;">
+          <h3 style="margin-bottom: 20px; font-size: 18px;">⚙️ Advanced Options</h3>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 15px; background: var(--light-bg); border-radius: 8px;">
+              <input type="checkbox" id="live-preview" checked>
+              <label for="live-preview" style="cursor: pointer;">Live Preview Mode</label>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; padding: 15px; background: var(--light-bg); border-radius: 8px;">
+              <input type="checkbox" id="auto-capture" checked>
+              <label for="auto-capture" style="cursor: pointer;">Auto-Capture on Quality</label>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; padding: 15px; background: var(--light-bg); border-radius: 8px;">
+              <input type="checkbox" id="debug-mode">
+              <label for="debug-mode" style="cursor: pointer;">Debug Mode</label>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; padding: 15px; background: var(--light-bg); border-radius: 8px;">
+              <input type="checkbox" id="sound-alert" checked>
+              <label for="sound-alert" style="cursor: pointer;">Sound Alert</label>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn btn-secondary">🔧 Calibrate Sensor</button>
+            <button class="btn btn-secondary">📊 View Statistics</button>
+            <button class="btn btn-secondary">📥 Load Template</button>
+            <button class="btn btn-secondary">💾 Save Template</button>
+          </div>
+        </div>
+
+        <!-- Capture History -->
+        <div class="card" style="margin-top: 30px; margin-bottom: 30px;">
+          <h3 style="margin-bottom: 20px; font-size: 18px;">📜 Recent Captures</h3>
+
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Quality</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>2024-12-08 14:30:45</td>
+                  <td>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <div style="flex: 1; height: 4px; background: var(--border-color); border-radius: 2px; overflow: hidden;">
+                        <div style="width: 92%; height: 100%; background: var(--success-color);"></div>
+                      </div>
+                      92%
+                    </div>
+                  </td>
+                  <td><span class="status-badge status-success">Excellent</span></td>
+                  <td><button class="icon-btn" title="View">👁️</button></td>
+                </tr>
+                <tr>
+                  <td>2024-12-08 14:28:12</td>
+                  <td>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <div style="flex: 1; height: 4px; background: var(--border-color); border-radius: 2px; overflow: hidden;">
+                        <div style="width: 78%; height: 100%; background: var(--warning-color);"></div>
+                      </div>
+                      78%
+                    </div>
+                  </td>
+                  <td><span class="status-badge status-warning">Good</span></td>
+                  <td><button class="icon-btn" title="View">👁️</button></td>
+                </tr>
+                <tr>
+                  <td>2024-12-08 14:25:33</td>
+                  <td>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <div style="flex: 1; height: 4px; background: var(--border-color); border-radius: 2px; overflow: hidden;">
+                        <div style="width: 65%; height: 100%; background: var(--danger-color);"></div>
+                      </div>
+                      65%
+                    </div>
+                  </td>
+                  <td><span class="status-badge status-danger">Poor</span></td>
+                  <td><button class="icon-btn" title="View">👁️</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

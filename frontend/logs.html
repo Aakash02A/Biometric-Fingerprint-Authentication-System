@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logs & Audit - Biometric Authentication System</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body id="logs-page">
+  <div id="alert-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
+
+  <div class="wrapper">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-icon">🔐</div>
+        <div class="logo-text">BioAuth</div>
+      </div>
+      <ul class="nav-menu">
+        <li><a href="dashboard.html"><span class="nav-icon">📊</span>Dashboard</a></li>
+        <li><a href="register.html"><span class="nav-icon">👤</span>Register User</a></li>
+        <li><a href="users.html"><span class="nav-icon">👥</span>Manage Users</a></li>
+        <li><a href="capture.html"><span class="nav-icon">👆</span>Capture Module</a></li>
+        <li><a href="logs.html" class="active"><span class="nav-icon">📋</span>View Logs</a></li>
+        <li><a href="security.html"><span class="nav-icon">🛡️</span>Security Info</a></li>
+        <li style="border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: 20px; padding-top: 20px;">
+          <a id="logout-btn" href="#"><span class="nav-icon">🚪</span>Logout</a>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Navbar -->
+      <nav class="navbar">
+        <div class="navbar-logo">🔐 Biometric Fingerprint Authentication System</div>
+        <div class="navbar-user">
+          <span>Welcome, Admin</span>
+          <div class="user-avatar">A</div>
+        </div>
+      </nav>
+
+      <!-- Page Content -->
+      <div class="container" style="margin-top: 30px;">
+        <!-- Header -->
+        <div class="card mb-30">
+          <h2 class="card-title">Logs & Audit Trail</h2>
+          <p class="card-subtitle">Monitor authentication attempts and system activity</p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px;">
+          <div class="card">
+            <div style="font-size: 28px; margin-bottom: 10px;">✅</div>
+            <div style="font-size: 20px; font-weight: bold; color: var(--success-color);">147</div>
+            <div style="font-size: 12px; color: var(--text-secondary);">Successful Logins</div>
+          </div>
+          <div class="card">
+            <div style="font-size: 28px; margin-bottom: 10px;">❌</div>
+            <div style="font-size: 20px; font-weight: bold; color: var(--danger-color);">8</div>
+            <div style="font-size: 12px; color: var(--text-secondary);">Failed Attempts</div>
+          </div>
+          <div class="card">
+            <div style="font-size: 28px; margin-bottom: 10px;">📊</div>
+            <div style="font-size: 20px; font-weight: bold; color: var(--primary-color);">94.8%</div>
+            <div style="font-size: 12px; color: var(--text-secondary);">Success Rate</div>
+          </div>
+          <div class="card">
+            <div style="font-size: 28px; margin-bottom: 10px;">👥</div>
+            <div style="font-size: 20px; font-weight: bold; color: var(--secondary-color);">4</div>
+            <div style="font-size: 12px; color: var(--text-secondary);">Active Users</div>
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card" style="margin-bottom: 20px;">
+          <h3 style="margin-bottom: 20px; font-size: 16px;">🔍 Filter Logs</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            <div style="display: flex; flex-direction: column;">
+              <label class="form-label">Date Range</label>
+              <select class="form-select" id="log-date-filter">
+                <option value="all">All Time</option>
+                <option value="today">Today</option>
+                <option value="week">Last 7 Days</option>
+                <option value="month">Last 30 Days</option>
+              </select>
+            </div>
+            <div style="display: flex; flex-direction: column;">
+              <label class="form-label">Status</label>
+              <select class="form-select" id="log-status-filter">
+                <option value="all">All Status</option>
+                <option value="Success">Success</option>
+                <option value="Failed">Failed</option>
+              </select>
+            </div>
+            <div style="display: flex; flex-direction: column;">
+              <label class="form-label">User ID</label>
+              <select class="form-select" id="log-user-filter">
+                <option value="all">All Users</option>
+                <option value="USR001">USR001 - John Doe</option>
+                <option value="USR002">USR002 - Jane Smith</option>
+                <option value="USR003">USR003 - Mike Johnson</option>
+                <option value="USR004">USR004 - Sarah Williams</option>
+              </select>
+            </div>
+            <div style="display: flex; flex-direction: column; justify-content: flex-end;">
+              <button class="btn btn-secondary" id="download-logs-btn">
+                📥 Download Logs
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Logs Table -->
+        <div class="card">
+          <div style="margin-bottom: 20px;">
+            <h3 style="font-size: 16px;">📋 Authentication Logs</h3>
+            <p style="font-size: 12px; color: var(--text-secondary);">All authentication attempts are logged and displayed below</p>
+          </div>
+
+          <div class="table-container">
+            <table class="table" id="logs-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>User ID</th>
+                  <th>Status</th>
+                  <th>Message</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Populated by JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Export Options -->
+        <div class="card" style="margin-top: 20px; margin-bottom: 30px;">
+          <h3 style="margin-bottom: 15px; font-size: 16px;">📤 Export Options</h3>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-secondary" onclick="LogsPage.downloadLogs()">
+              📄 Export as CSV
+            </button>
+            <button class="btn btn-secondary" onclick="alert('PDF export feature')">
+              📕 Export as PDF
+            </button>
+            <button class="btn btn-secondary" onclick="alert('Email report feature')">
+              ✉️ Email Report
+            </button>
+            <button class="btn btn-secondary" onclick="alert('Archive feature')">
+              📦 Archive Logs
+            </button>
+          </div>
+        </div>
+
+        <!-- Log Details -->
+        <div class="card" style="margin-bottom: 30px;">
+          <h3 style="margin-bottom: 15px; font-size: 16px;">ℹ️ Log Information</h3>
+          <div style="background: var(--light-bg); padding: 15px; border-radius: 8px; font-size: 13px; color: var(--text-secondary); line-height: 1.8;">
+            <p><strong>Retention Policy:</strong> Logs are retained for 90 days and then archived.</p>
+            <p><strong>Update Frequency:</strong> Logs are updated in real-time.</p>
+            <p><strong>Accessibility:</strong> Only administrators can view and export logs.</p>
+            <p><strong>Encryption:</strong> All logs are encrypted and stored securely.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
