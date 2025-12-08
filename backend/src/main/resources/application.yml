@@ -1,0 +1,61 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: biometric-fingerprint-api
+  
+  datasource:
+    url: jdbc:sqlite:./data/bioauth.db
+    driver-class-name: org.sqlite.JDBC
+    username: 
+    password:
+  
+  jpa:
+    database-platform: com.zsoltfabok.sqlitedialect.SQLiteDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: com.zsoltfabok.sqlitedialect.SQLiteDialect
+  
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+
+logging:
+  level:
+    root: INFO
+    com.bioauth: DEBUG
+  file:
+    name: logs/application.log
+    max-size: 10MB
+    max-history: 10
+
+# Biometric Scanner Configuration
+bioauth:
+  scanner:
+    enabled: true
+    device-id: 0
+    timeout: 5000
+    quality-threshold: 70
+  
+  authentication:
+    match-threshold: 85
+    max-attempts: 3
+    lockout-duration: 300
+    session-timeout: 1800
+  
+  encryption:
+    algorithm: AES
+    key-size: 256
+    enabled: true
+  
+  jwt:
+    secret: your-super-secret-key-change-in-production-12345678901234567890
+    expiration: 3600000

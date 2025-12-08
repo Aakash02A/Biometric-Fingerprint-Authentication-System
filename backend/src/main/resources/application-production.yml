@@ -1,0 +1,58 @@
+# Biometric Authentication System - Environment Configuration
+
+# Database Configuration
+spring.datasource.url=jdbc:sqlite:./data/bioauth.db
+spring.datasource.driver-class-name=org.sqlite.JDBC
+spring.jpa.database-platform=org.hibernate.community.dialect.SQLiteDialect
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.format_sql=true
+
+# API Server Configuration
+server.port=8080
+server.servlet.context-path=/api
+spring.application.name=biometric-auth-api
+
+# Logging Configuration
+logging.level.root=INFO
+logging.level.com.bioauth=DEBUG
+logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} - %msg%n
+
+# Biometric Scanner Configuration
+biometric.scanner.quality-threshold=70
+biometric.scanner.timeout-seconds=5
+biometric.scanner.supported-formats=PNG,JPG,JPEG,TIFF
+
+# Authentication Configuration
+auth.match-threshold=85
+auth.max-failed-attempts=3
+auth.lockout-duration-minutes=5
+auth.session-timeout-minutes=30
+
+# Encryption Configuration
+encryption.algorithm=AES
+encryption.key-size=256
+encryption.key-derivation=PBKDF2
+
+# JWT Token Configuration
+jwt.expiration-hours=1
+jwt.secret=your-secret-key-change-in-production
+jwt.issuer=biometric-auth-system
+jwt.subject=user-authentication
+
+# CORS Configuration
+cors.allowed-origins=http://localhost:3000,http://localhost:8080,http://127.0.0.1
+cors.allowed-methods=GET,POST,PUT,DELETE,OPTIONS
+cors.allowed-headers=*
+cors.max-age-seconds=3600
+
+# File Upload Configuration
+file.upload.max-size=10MB
+file.upload.directory=/app/data/uploads
+
+# Database Connection Pool
+spring.datasource.hikari.maximum-pool-size=5
+spring.datasource.hikari.minimum-idle=2
+spring.datasource.hikari.connection-timeout=20000
+spring.datasource.hikari.idle-timeout=300000
+spring.datasource.hikari.max-lifetime=1200000

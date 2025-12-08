@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  bioauth-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - JAVA_OPTS=-Xmx512m -Xms256m
+      - SPRING_PROFILES_ACTIVE=production
+    volumes:
+      - bioauth-data:/app/data
+    networks:
+      - bioauth-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/auth/verify"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+volumes:
+  bioauth-data:
+    driver: local
+
+networks:
+  bioauth-network:
+    driver: bridge

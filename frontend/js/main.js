@@ -106,53 +106,90 @@ const LoginPage = {
     if (manualLoginBtn) manualLoginBtn.addEventListener('click', () => this.showManualLogin());
   },
 
-  startScanning() {
+  async startScanning() {
     this.scannerState = 'scanning';
     this.scanProgress = 0;
     this.updateUI();
 
-    // Simulate scanning
-    const scanInterval = setInterval(() => {
-      this.scanProgress += Math.random() * 25;
-
-      if (this.scanProgress >= 100) {
-        this.scanProgress = 100;
-        clearInterval(scanInterval);
-        this.completeScanning();
+    try {
+      // Get real fingerprint from scanner
+      const fingerprintData = await FingerprintScanner.scanFingerprint();
+      
+      if (!fingerprintData) {
+        throw new Error('No fingerprint data captured');
       }
 
-      this.updateUI();
-    }, 400);
+      // Get quality score
+      const quality = await FingerprintScanner.getQualityScore(fingerprintData.data);
+      
+      // Simulate quality progression for UI
+      const qualityInterval = setInterval(() => {
+        this.scanProgress = Math.min(this.scanProgress + 20, quality);
+        this.updateUI();
+        
+        if (this.scanProgress >= quality) {
+          clearInterval(qualityInterval);
+          this.authenticateWithFingerprint(fingerprintData, quality);
+        }
+      }, 300);
 
-    // Timeout after maxScanTime
-    setTimeout(() => {
-      if (this.scannerState === 'scanning') {
-        clearInterval(scanInterval);
-        this.failScanning();
-      }
-    }, this.maxScanTime);
-  },
-
-  completeScanning() {
-    // Randomly succeed or fail (80% success)
-    if (Math.random() < 0.8) {
-      this.scannerState = 'success';
-      this.updateUI();
-      UI.showAlert('Fingerprint matched! Redirecting...', 'success');
-
-      // Redirect after 2 seconds
-      setTimeout(() => {
-        window.location.href = 'dashboard.html';
-      }, 2000);
-    } else {
-      this.failScanning();
+    } catch (error) {
+      console.error('Fingerprint scanning error:', error);
+      this.failScanning(error.message);
     }
   },
 
-  failScanning() {
+  async authenticateWithFingerprint(fingerprintData, quality) {
+    try {
+      if (quality < 70) {
+        throw new Error('Fingerprint quality too low. Please try again.');
+      }
+
+      this.scannerState = 'success';
+      this.updateUI();
+      UI.showAlert('✅ Fingerprint captured successfully! Authenticating...', 'success');
+
+      // Send to backend for authentication
+      const response = await fetch('/v1/auth/authenticate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fingerprintData: fingerprintData.data,
+          fingerprintType: fingerprintData.type,
+          quality: quality,
+          timestamp: new Date().toISOString()
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Authentication failed');
+      }
+
+      const result = await response.json();
+      
+      if (result.token) {
+        localStorage.setItem('token', result.token);
+        localStorage.setItem('userId', result.userId);
+        UI.showAlert('🎉 Authentication successful! Redirecting...', 'success');
+
+        // Redirect after 1.5 seconds
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 1500);
+      } else {
+        throw new Error('No authentication token received');
+      }
+    } catch (error) {
+      console.error('Authentication error:', error);
+      this.failScanning(error.message);
+    }
+  },
+
+  failScanning(errorMsg = 'Fingerprint not recognized') {
     this.scannerState = 'error';
     this.updateUI();
-    UI.showAlert('Fingerprint not recognized. Please try again.', 'danger');
+    UI.showAlert(errorMsg, 'danger');
 
     setTimeout(() => {
       this.resetScanner();
@@ -235,53 +272,65 @@ const RegistrationPage = {
     }
   },
 
-  captureFingerprint() {
+  async captureFingerprint() {
     this.captureState = 'capturing';
     this.updateCaptureUI();
+    UI.showAlert('🔍 Starting fingerprint scan...', 'info', 2000);
 
-    // Simulate fingerprint capture
-    let quality = 0;
-    const captureInterval = setInterval(() => {
-      quality += Math.random() * 30;
-
-      if (quality >= 100) {
-        quality = 100;
-        clearInterval(captureInterval);
-        this.captureQuality = quality;
-        this.completCapture();
+    try {
+      // Get fingerprint data from scanner
+      const fingerprintData = await FingerprintScanner.scanFingerprint();
+      
+      if (!fingerprintData) {
+        throw new Error('No fingerprint data captured');
       }
 
-      this.updateQualityBar(quality);
-    }, 300);
+      // Get quality score
+      const quality = await FingerprintScanner.getQualityScore(fingerprintData.data);
+      this.captureQuality = quality;
 
-    // Timeout after 6 seconds
-    setTimeout(() => {
-      if (this.captureState === 'capturing') {
-        clearInterval(captureInterval);
-        this.captureState = 'idle';
-        this.updateCaptureUI();
-        UI.showAlert('Capture timeout. Please try again.', 'warning');
-      }
-    }, 6000);
+      // Update quality bar with animation
+      let animatedQuality = 0;
+      const animationInterval = setInterval(() => {
+        animatedQuality += quality / 10;
+        if (animatedQuality >= quality) {
+          animatedQuality = quality;
+          clearInterval(animationInterval);
+          this.completCapture(fingerprintData);
+        }
+        this.updateQualityBar(animatedQuality);
+      }, 50);
+
+    } catch (error) {
+      console.error('Capture error:', error);
+      this.captureState = 'idle';
+      this.updateCaptureUI();
+      UI.showAlert(`❌ Scan failed: ${error.message}`, 'danger');
+    }
   },
 
-  completCapture() {
+  completCapture(fingerprintData = null) {
     const quality = this.captureQuality;
     const qualityText = quality >= 85 ? 'Excellent' : quality >= 70 ? 'Good' : 'Poor';
 
-    this.capturedFingerprints.push({
+    const captureRecord = {
       id: this.capturedFingerprints.length + 1,
       quality: quality,
       timestamp: new Date(),
-    });
+      data: fingerprintData ? fingerprintData.data : null,
+      type: fingerprintData ? fingerprintData.type : 'simulated',
+      scanCount: FingerprintScanner.state.scanCount
+    };
+
+    this.capturedFingerprints.push(captureRecord);
 
     this.captureState = 'idle';
     this.updateCaptureUI();
 
     const message =
       quality >= 70
-        ? `Fingerprint captured with ${qualityText} quality!`
-        : 'Quality is low. Please try again.';
+        ? `✅ Fingerprint captured! Quality: ${qualityText} (${Math.round(quality)}%)`
+        : `⚠️ Quality is low (${Math.round(quality)}%). Please try again.`;
 
     UI.showAlert(message, quality >= 70 ? 'success' : 'warning');
 
@@ -315,13 +364,24 @@ const RegistrationPage = {
   updateFingerprintList() {
     const list = document.getElementById('fingerprint-list');
     if (list) {
+      if (this.capturedFingerprints.length === 0) {
+        list.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No fingerprints captured yet.</p>';
+        return;
+      }
+
       list.innerHTML = this.capturedFingerprints
         .map(
           (fp, idx) => `
-        <div class="user-card">
+        <div class="user-card" style="margin-bottom: 10px;">
           <div class="user-info">
-            <div class="user-name">Fingerprint #${fp.id}</div>
-            <div class="user-detail">Quality: ${fp.quality >= 85 ? 'Excellent' : fp.quality >= 70 ? 'Good' : 'Poor'} | ${UI.formatDate(fp.timestamp)}</div>
+            <div class="user-name">👆 Fingerprint #${fp.id}</div>
+            <div class="user-detail" style="font-size: 12px;">
+              Quality: ${fp.quality >= 85 ? 'Excellent ⭐' : fp.quality >= 70 ? 'Good ✅' : 'Poor ⚠️'} (${Math.round(fp.quality)}%) 
+              | Type: ${fp.type === 'camera' ? '📷 Camera' : fp.type === 'file' ? '📁 File' : fp.type === 'usb' ? '🔌 USB' : '📊 Simulated'}
+            </div>
+            <div class="user-detail" style="font-size: 11px; color: var(--text-secondary);">
+              ${UI.formatDate(fp.timestamp)}
+            </div>
           </div>
           <button class="icon-btn danger" onclick="RegistrationPage.removeFingerprint(${idx})" title="Remove">🗑️</button>
         </div>
@@ -536,55 +596,52 @@ const CaptureModule = {
     if (clearBtn) clearBtn.addEventListener('click', () => this.clearCapture());
   },
 
-  startCapture() {
+  async startCapture() {
     if (this.isCapturing) return;
 
     this.isCapturing = true;
     this.captureQuality = 0;
     this.updateUI();
 
-    let quality = 0;
-    const interval = setInterval(() => {
-      quality += Math.random() * 25;
-
-      if (quality >= 100) {
-        quality = 100;
-        clearInterval(interval);
-        this.completeCapture();
+    try {
+      // Get real fingerprint from scanner
+      const fingerprintData = await FingerprintScanner.scanFingerprint();
+      
+      if (!fingerprintData) {
+        throw new Error('No fingerprint data captured');
       }
 
-      this.updateQuality(quality);
-    }, 400);
+      // Get quality score
+      const quality = await FingerprintScanner.getQualityScore(fingerprintData.data);
+      
+      // Animate quality bar
+      let currentQuality = 0;
+      const interval = setInterval(() => {
+        currentQuality = Math.min(currentQuality + 15, quality);
+        this.updateQuality(currentQuality);
+        
+        if (currentQuality >= quality) {
+          clearInterval(interval);
+          this.completeCapture(fingerprintData, quality);
+        }
+      }, 200);
 
-    setTimeout(() => {
-      if (this.isCapturing) {
-        clearInterval(interval);
-        this.isCapturing = false;
-        this.updateUI();
-        UI.showAlert('Capture timeout.', 'warning');
-      }
-    }, 6000);
-  },
-
-  updateQuality(quality) {
-    const bar = document.getElementById('capture-quality-bar');
-    if (bar) {
-      bar.style.width = `${quality}%`;
-    }
-
-    const text = document.getElementById('capture-quality-text');
-    if (text) {
-      const status = quality >= 85 ? 'Excellent' : quality >= 70 ? 'Good' : 'Poor';
-      text.textContent = `Quality: ${status} (${Math.round(quality)}%)`;
+    } catch (error) {
+      console.error('Capture error:', error);
+      this.isCapturing = false;
+      this.updateUI();
+      UI.showAlert(`❌ Capture failed: ${error.message}`, 'danger');
     }
   },
 
-  completeCapture() {
-    this.captureQuality = Math.round(Math.random() * 30 + 70);
+  completeCapture(fingerprintData, quality) {
+    this.captureQuality = Math.round(quality);
     this.isCapturing = false;
     this.updateQuality(this.captureQuality);
     this.updateUI();
-    UI.showAlert(`Capture successful! Quality: ${this.captureQuality}%`, 'success');
+    
+    const statusMsg = quality >= 85 ? '⭐ Excellent' : quality >= 70 ? '✅ Good' : '⚠️ Poor';
+    UI.showAlert(`✅ Capture successful! Quality: ${statusMsg} (${this.captureQuality}%)`, 'success');
   },
 
   updateUI() {
