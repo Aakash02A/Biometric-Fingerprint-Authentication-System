@@ -41,7 +41,8 @@ public class BiometricAuthenticationSystem {
         this.userService = new UserService(userRepository, encryptionService);
         
         // Initialize biometric services
-        this.sensor = new SimulatedFingerprintSensor();
+        // Use factory to get appropriate sensor (real or simulated)
+        this.sensor = SensorFactory.createSensor();
         this.featureExtractor = new FeatureExtractionService();
         this.captureService = new FingerprintCaptureService(sensor, featureExtractor);
         

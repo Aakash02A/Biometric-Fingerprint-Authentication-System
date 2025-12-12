@@ -11,10 +11,12 @@ public class SystemConfig {
     public static final int POOR_QUALITY = 50;
 
     // Sensor configuration
+    public static final String SENSOR_TYPE = "auto";  // "auto", "windows", or "simulated"
     public static final int FINGERPRINT_TEMPLATE_SIZE = 512;  // bytes
     public static final int DPI_RESOLUTION = 500;
     public static final int MAX_CAPTURE_TIME = 5000;  // milliseconds
     public static final int MIN_CAPTURE_TIME = 1000;  // milliseconds
+    public static final int SENSOR_TIMEOUT = 10000;  // milliseconds - timeout for sensor operations
 
     // Retry and lockout configuration
     public static final int MAX_AUTHENTICATION_ATTEMPTS = 3;
