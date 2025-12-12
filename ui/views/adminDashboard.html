@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - BioAuth</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <div class="admin-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <h2>🔐 BioAuth Admin</h2>
+            <nav class="sidebar-nav">
+                <li><a href="#dashboard" class="active">Dashboard</a></li>
+                <li><a href="#users">User Management</a></li>
+                <li><a href="#logs">Auth Logs</a></li>
+                <li><a href="#alerts">Alerts</a></li>
+                <li><a href="#settings">Settings</a></li>
+                <li><a href="#reports">Reports</a></li>
+                <li><a href="#logout" onclick="logout()">Logout</a></li>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="admin-content">
+            <div class="admin-header">
+                <h1>📊 Admin Dashboard</h1>
+                <div style="display: flex; gap: 16px; align-items: center;">
+                    <div style="font-size: 14px; color: var(--text-secondary);">
+                        Last updated: <span id="updateTime">Just now</span>
+                    </div>
+                    <button style="padding: 8px 16px; background: rgba(255, 0, 110, 0.1); border: 1px solid var(--error-red); color: var(--error-red); border-radius: 6px; cursor: pointer; transition: all 0.3s; font-size: 13px;" id="adminLogoutBtn" onmouseover="this.style.background='rgba(255, 0, 110, 0.2)'" onmouseout="this.style.background='rgba(255, 0, 110, 0.1)'">Logout</button>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div id="statsContainer" class="quick-stats"></div>
+
+            <!-- User Management Section -->
+            <h2 class="section-title">👥 User Management</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Enrolled</th>
+                            <th>Last Login</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Authentication Logs Section -->
+            <h2 class="section-title">📋 Authentication Logs</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Timestamp</th>
+                            <th>Result</th>
+                            <th>Device</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsTableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Real-time Status & Alerts -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 30px;">
+                <!-- Currently Online Users -->
+                <div class="card">
+                    <h2>🟢 Currently Online</h2>
+                    <div style="padding-top: 12px;">
+                        <div style="padding: 8px 0; border-bottom: 1px solid var(--border-color); display: flex; align-items: center;">
+                            <span class="status-indicator online"></span>
+                            <span>Alice Johnson</span>
+                        </div>
+                        <div style="padding: 8px 0; border-bottom: 1px solid var(--border-color); display: flex; align-items: center;">
+                            <span class="status-indicator online"></span>
+                            <span>Bob Smith</span>
+                        </div>
+                        <div style="padding: 8px 0; border-bottom: 1px solid var(--border-color); display: flex; align-items: center;">
+                            <span class="status-indicator online"></span>
+                            <span>David Brown</span>
+                        </div>
+                        <div style="padding: 8px 0; border-bottom: 1px solid var(--border-color); display: flex; align-items: center;">
+                            <span class="status-indicator online"></span>
+                            <span>Eve Davis</span>
+                        </div>
+                        <div style="padding: 8px 0; display: flex; align-items: center;">
+                            <span class="status-indicator offline"></span>
+                            <span>Carol White</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alerts Panel -->
+                <div class="alerts-panel">
+                    <h2 style="margin-bottom: 16px;">⚠️ System Alerts</h2>
+                    <div id="alertsContainer"></div>
+                </div>
+            </div>
+
+            <!-- System Status Card -->
+            <div class="card" style="margin-bottom: 30px;">
+                <h2>🔧 System Status</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding-top: 12px;">
+                    <div style="padding: 12px; background: rgba(0, 255, 136, 0.1); border-radius: 8px; border-left: 3px solid var(--success-green);">
+                        <div style="font-size: 12px; color: var(--text-secondary);">Database Status</div>
+                        <div style="font-size: 14px; color: var(--success-green); font-weight: 600;">✓ Connected</div>
+                    </div>
+                    <div style="padding: 12px; background: rgba(0, 255, 136, 0.1); border-radius: 8px; border-left: 3px solid var(--success-green);">
+                        <div style="font-size: 12px; color: var(--text-secondary);">API Status</div>
+                        <div style="font-size: 14px; color: var(--success-green); font-weight: 600;">✓ Running</div>
+                    </div>
+                    <div style="padding: 12px; background: rgba(0, 212, 255, 0.1); border-radius: 8px; border-left: 3px solid var(--accent-neon-blue);">
+                        <div style="font-size: 12px; color: var(--text-secondary);">Disk Usage</div>
+                        <div style="font-size: 14px; color: var(--accent-neon-blue); font-weight: 600;">64% Used</div>
+                    </div>
+                    <div style="padding: 12px; background: rgba(0, 212, 255, 0.1); border-radius: 8px; border-left: 3px solid var(--accent-neon-blue);">
+                        <div style="font-size: 12px; color: var(--text-secondary);">Memory Usage</div>
+                        <div style="font-size: 14px; color: var(--accent-neon-blue); font-weight: 600;">42% Used</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/app.js"></script>
+    <script>
+        // Update timestamp
+        function updateTimestamp() {
+            const updateTime = document.getElementById('updateTime');
+            const now = new Date();
+            updateTime.textContent = now.toLocaleTimeString();
+        }
+
+        // Update timestamp every 5 seconds
+        setInterval(updateTimestamp, 5000);
+    </script>
+</body>
+</html>

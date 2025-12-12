@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - BioAuth</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <div class="dashboard-header">
+            <h1>👤 User Dashboard</h1>
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">JD</div>
+                <div>
+                    <div style="font-size: 14px; font-weight: 500;" id="userName">John Doe</div>
+                    <div style="font-size: 12px; color: var(--text-secondary);" id="userEmail">john.doe@bioauth.com</div>
+                </div>
+                <button class="logout-btn" id="logoutBtn">Logout</button>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Profile Summary Card -->
+            <div class="card">
+                <h2>Profile Summary</h2>
+                <div class="profile-summary"></div>
+            </div>
+
+            <!-- Authentication History Card -->
+            <div class="card">
+                <h2>Authentication History</h2>
+                <div id="authHistory"></div>
+            </div>
+
+            <!-- Device Information Card -->
+            <div class="card">
+                <h2>Device Information</h2>
+                <div id="deviceInfo"></div>
+            </div>
+
+            <!-- Biometric Enrollment Card -->
+            <div class="card">
+                <h2>Biometric Management</h2>
+                <p style="margin-bottom: 16px;">Manage and update your biometric templates for enhanced security.</p>
+                <button class="btn-primary" id="reenrollBtn">Re-enroll Fingerprint</button>
+                <button class="btn-primary" style="background: linear-gradient(135deg, var(--accent-neon-blue) 0%, var(--accent-neon-purple) 100%); margin-top: 8px;">View Enrollment Status</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reenroll Modal -->
+    <div class="modal" id="reenrollModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Re-enroll Fingerprint</h2>
+                <button class="modal-close" id="reenrollClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 16px;">You are about to start the fingerprint re-enrollment process. This will update your biometric template with new scans.</p>
+                <p style="margin-bottom: 16px;"><strong>Steps:</strong></p>
+                <ol style="margin-left: 20px; color: var(--text-secondary);">
+                    <li>Place your finger on the scanner</li>
+                    <li>Repeat for all fingers (optional)</li>
+                    <li>Verify the new template</li>
+                    <li>Confirm and save</li>
+                </ol>
+                <p style="color: var(--text-secondary); margin-top: 16px;">This process takes approximately 2-3 minutes.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="reenrollCancel">Cancel</button>
+                <button class="btn-confirm" id="reenrollConfirm">Start Re-enrollment</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - BioAuth</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .login-page {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
+            animation: fade-in 0.6s ease-out;
+        }
+
+        .login-container {
+            background: rgba(26, 31, 58, 0.95);
+            backdrop-filter: blur(20px);
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            padding: 50px 45px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 255, 136, 0.1);
+            animation: slide-up 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--accent-neon), var(--accent-neon-blue), transparent);
+            opacity: 0.6;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-header h1 {
+            font-size: 32px;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, var(--accent-neon) 0%, var(--accent-neon-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .login-header p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 13px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            background: rgba(10, 14, 39, 0.6);
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: var(--transition-smooth);
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent-neon);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.25), inset 0 0 10px rgba(0, 255, 136, 0.05);
+            background: rgba(10, 14, 39, 0.8);
+        }
+
+        .form-group input::placeholder {
+            color: rgba(176, 184, 212, 0.4);
+        }
+
+        .status-message {
+            text-align: center;
+            padding: 14px;
+            margin-bottom: 24px;
+            border-radius: 10px;
+            font-size: 13px;
+            display: none;
+            animation: slide-up 0.3s ease-out;
+            font-weight: 600;
+            border: 2px solid;
+        }
+
+        .status-message.show {
+            display: block;
+        }
+
+        .status-message.error {
+            background: rgba(255, 0, 110, 0.1);
+            color: var(--error-red);
+            border-color: var(--error-red);
+        }
+
+        .status-message.success {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--success-green);
+            border-color: var(--success-green);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, var(--accent-neon) 0%, var(--accent-neon-blue) 100%);
+            color: var(--primary-dark);
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 25px rgba(0, 255, 136, 0.2);
+        }
+
+        .login-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0, 255, 136, 0.4);
+        }
+
+        .login-btn:active:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: var(--text-secondary);
+            border-top: 2px solid var(--border-color);
+            padding-top: 20px;
+            font-weight: 500;
+        }
+
+        .footer-links a {
+            color: var(--accent-neon);
+            text-decoration: none;
+            transition: var(--transition-smooth);
+            font-weight: 700;
+            display: inline-block;
+            position: relative;
+        }
+
+        .footer-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-neon), var(--accent-neon-blue));
+            transition: width 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-neon-blue);
+        }
+
+        .footer-links a:hover::after {
+            width: 100%;
+        }
+
+        .biometric-section {
+            margin-top: 28px;
+            padding-top: 28px;
+            border-top: 2px solid var(--border-color);
+            display: none;
+            animation: slide-up 0.4s ease-out;
+        }
+
+        .biometric-section.show {
+            display: block;
+        }
+
+        .biometric-text {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .fingerprint-scanner {
+            text-align: center;
+            padding: 32px 24px;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.08) 0%, rgba(0, 212, 255, 0.08) 100%);
+            border: 3px dashed var(--accent-neon);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .fingerprint-scanner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent, rgba(0, 255, 136, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .fingerprint-scanner:hover {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.15) 0%, rgba(0, 212, 255, 0.15) 100%);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.2);
+            border-color: var(--accent-neon-blue);
+        }
+
+        .fingerprint-scanner:hover::before {
+            opacity: 1;
+        }
+
+        .fingerprint-icon {
+            font-size: 42px;
+            margin-bottom: 16px;
+            animation: pulse 1.5s ease-in-out infinite;
+            display: block;
+        }
+
+        .scanner-text {
+            font-size: 13px;
+            color: var(--accent-neon);
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .scanner-status {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 24px 16px;
+            }
+
+            .login-header h1 {
+                font-size: 24px;
+            }
+
+            .footer-links {
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-page">
+        <div class="login-container">
+            <div class="login-header">
+                <h1>BioAuth</h1>
+                <p>Secure Biometric Authentication</p>
+            </div>
+
+            <div class="status-message"></div>
+
+            <form id="loginForm" onsubmit="return false;">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Enter your username" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+
+                <button type="button" id="loginBtn" class="login-btn">Login</button>
+
+                <div class="biometric-section" id="biometricSection">
+                    <div class="biometric-text">Next: Biometric Verification</div>
+                    <div class="fingerprint-scanner" id="fingerprintScanner">
+                        <div class="fingerprint-icon">👆</div>
+                        <div class="scanner-text">Scan Your Fingerprint</div>
+                        <div class="scanner-status">Click to verify</div>
+                    </div>
+                </div>
+
+                <div class="footer-links">
+                    <a href="/views/register.html">Sign Up</a>
+                    <a href="/">Back Home</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../assets/js/app.js"></script>
+    <script>
+        function initLoginPage() {
+            const loginBtn = document.getElementById('loginBtn');
+            const fingerprintScanner = document.getElementById('fingerprintScanner');
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+
+            if (loginBtn) {
+                loginBtn.addEventListener('click', handleLogin);
+            }
+
+            if (fingerprintScanner) {
+                fingerprintScanner.addEventListener('click', simulateFingerprintScan);
+            }
+
+            // Allow Enter key to submit
+            [usernameInput, passwordInput].forEach(input => {
+                if (input) {
+                    input.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            handleLogin();
+                        }
+                    });
+                }
+            });
+
+            // Check for existing session
+            checkExistingSession();
+
+            // Check for new registration message
+            if (new URLSearchParams(window.location.search).get('new') === 'true') {
+                showStatus('✓ Account created! Please login with your credentials.', 'success');
+            }
+        }
+
+        function handleLogin() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+
+            if (!username || !password) {
+                showStatus('Please enter both username and password.', 'error');
+                return;
+            }
+
+            // Find user
+            const user = AppState.mockUsers.find(u => u.username === username && u.password === password);
+
+            if (!user) {
+                showStatus('Invalid username or password.', 'error');
+                return;
+            }
+
+            if (user.status !== 'active') {
+                showStatus('This account is not active. Please contact support.', 'error');
+                return;
+            }
+
+            // Store current user and show biometric section
+            AppState.currentUser = user;
+            document.getElementById('biometricSection').classList.add('show');
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Credentials Verified ✓';
+            showStatus('✓ Credentials verified. Please scan your fingerprint.', 'success');
+        }
+
+        function simulateFingerprintScan() {
+            const scanner = document.getElementById('fingerprintScanner');
+            const icon = scanner.querySelector('.fingerprint-icon');
+
+            scanner.style.opacity = '0.5';
+            scanner.style.pointerEvents = 'none';
+            icon.style.animation = 'none';
+            icon.textContent = 'Scanning...';
+
+            setTimeout(() => {
+                // 70% success rate
+                if (Math.random() < 0.7) {
+                    handleScanSuccess();
+                } else {
+                    handleScanFailure();
+                }
+            }, 2000);
+        }
+
+        function handleScanSuccess() {
+            // Set authentication
+            AppState.isAuthenticated = true;
+            const token = 'jwt_token_' + Date.now();
+            
+            sessionStorage.setItem('bioauth_token', token);
+            sessionStorage.setItem('bioauth_user', JSON.stringify(AppState.currentUser));
+
+            showStatus('✓ Authentication successful! Redirecting...', 'success');
+
+            setTimeout(() => {
+                window.location.href = 'userDashboard.html';
+            }, 1000);
+        }
+
+        function handleScanFailure() {
+            const scanner = document.getElementById('fingerprintScanner');
+            const icon = scanner.querySelector('.fingerprint-icon');
+
+            scanner.style.opacity = '1';
+            scanner.style.pointerEvents = 'auto';
+            icon.textContent = '❌';
+            icon.style.animation = 'shake 0.5s ease-in-out';
+
+            showStatus('✗ Fingerprint verification failed. Please try again.', 'error');
+
+            setTimeout(() => {
+                icon.textContent = '👆';
+                icon.style.animation = 'pulse 1.5s ease-in-out infinite';
+            }, 1500);
+        }
+
+        function showStatus(message, type) {
+            const statusMessage = document.querySelector('.status-message');
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message show ${type}`;
+        }
+
+        function checkExistingSession() {
+            const token = sessionStorage.getItem('bioauth_token');
+            const user = sessionStorage.getItem('bioauth_user');
+
+            if (token && user) {
+                const currentUser = JSON.parse(user);
+                if (currentUser.role === 'admin') {
+                    window.location.href = 'adminDashboard.html';
+                } else {
+                    window.location.href = 'userDashboard.html';
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initLoginPage();
+        });
+    </script>
+</body>
+</html>

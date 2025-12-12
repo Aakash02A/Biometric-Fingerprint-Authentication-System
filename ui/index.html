@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioAuth - Biometric Authentication System</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .landing-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            flex-direction: column;
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
+            animation: fade-in 0.8s ease-out;
+        }
+
+        .landing-content {
+            max-width: 700px;
+            animation: slide-up 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .landing-content h1 {
+            font-size: 56px;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, var(--accent-neon) 0%, var(--accent-neon-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+        }
+
+        .landing-content p {
+            font-size: 17px;
+            color: var(--text-secondary);
+            margin-bottom: 50px;
+            line-height: 1.8;
+            font-weight: 500;
+        }
+
+        .landing-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 80px;
+        }
+
+        .landing-btn {
+            padding: 16px 42px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .landing-btn.primary {
+            background: linear-gradient(135deg, var(--accent-neon) 0%, var(--accent-neon-blue) 100%);
+            color: var(--primary-dark);
+        }
+
+        .landing-btn.primary:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0, 255, 136, 0.4);
+        }
+
+        .landing-btn.primary:active {
+            transform: translateY(-2px);
+        }
+
+        .landing-btn.secondary {
+            border: 2px solid var(--accent-neon);
+            color: var(--accent-neon);
+            background: transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .landing-btn.secondary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 255, 136, 0.1);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .landing-btn.secondary:hover {
+            color: var(--accent-neon-blue);
+            border-color: var(--accent-neon-blue);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 255, 136, 0.3);
+        }
+
+        .landing-btn.secondary:hover::before {
+            left: 0;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 24px;
+            margin-top: 80px;
+            padding-top: 80px;
+            border-top: 2px solid var(--border-color);
+        }
+
+        .feature {
+            padding: 28px 20px;
+            background: rgba(26, 31, 58, 0.6);
+            border-radius: 15px;
+            border: 2px solid var(--border-color);
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--accent-neon), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .feature:hover {
+            background: rgba(26, 31, 58, 0.9);
+            border-color: var(--accent-neon);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.15);
+            transform: translateY(-5px);
+        }
+
+        .feature:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon {
+            font-size: 38px;
+            margin-bottom: 16px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .feature-name {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="landing-container">
+        <div class="landing-content">
+            <h1>🔐 BioAuth</h1>
+            <p>Advanced Biometric Fingerprint Authentication System with Modern Web UI</p>
+            
+            <div class="landing-buttons">
+                <a href="views/login.html" class="landing-btn primary">Login</a>
+                <a href="views/register.html" class="landing-btn secondary">Sign Up</a>
+            </div>
+
+            <div class="feature-grid">
+                <div class="feature">
+                    <div class="feature-icon">👆</div>
+                    <div class="feature-name">Fingerprint Scan</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🔒</div>
+                    <div class="feature-name">Secure Auth</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-name">Analytics</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">⚡</div>
+                    <div class="feature-name">Real-time</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/app.js"></script>
+</body>
+</html>
