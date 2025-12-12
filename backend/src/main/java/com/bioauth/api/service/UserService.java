@@ -1,140 +1,188 @@
 package com.bioauth.api.service;
 
-import com.bioauth.api.dto.UserDTO;
-import com.bioauth.api.model.User;
-import com.bioauth.api.model.User.UserStatus;
-import com.bioauth.api.model.User.UserRole;
+import com.bioauth.api.entity.UserEntity;
 import com.bioauth.api.repository.UserRepository;
-import com.bioauth.api.utils.SecurityUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
+/**
+ * Service layer for user management with database operations
+ */
 @Service
+@Transactional
+@Slf4j
 public class UserService {
-
     @Autowired
     private UserRepository userRepository;
 
-    public User registerUser(String username, String email, String firstName, String lastName, String password) throws Exception {
-        if (userRepository.findByUsername(username).isPresent()) {
-            throw new IllegalArgumentException("Username already exists");
-        }
-        if (userRepository.findByEmail(email).isPresent()) {
-            throw new IllegalArgumentException("Email already exists");
-        }
+    @Autowired
+    private EncryptionService encryptionService;
 
-        User user = new User();
-        user.setUsername(username);
-        user.setEmail(email);
-        user.setFirstName(firstName);
-        user.setLastName(lastName);
-        user.setPasswordHash(SecurityUtil.hashPassword(password));
-        user.setRole(UserRole.USER);
-        user.setStatus(UserStatus.ACTIVE);
-        user.setCreatedAt(LocalDateTime.now());
-        user.setUpdatedAt(LocalDateTime.now());
+    @Autowired
+    private AuditLogService auditLogService;
 
-        return userRepository.save(user);
+    /**
+     * Register new user with fingerprint
+     */
+    public UserEntity registerUser(String userId, String username, String email, 
+                                   String department, byte[] fingerprintImage, 
+                                   int qualityScore, String ipAddress) {
+        try {
+            // Check if user already exists
+            if (userRepository.findByUserId(userId).isPresent()) {
+                throw new RuntimeException("User ID already exists: " + userId);
+            }
+            if (userRepository.findByUsername(username).isPresent()) {
+                throw new RuntimeException("Username already exists: " + username);
+            }
+            if (userRepository.findByEmail(email).isPresent()) {
+                throw new RuntimeException("Email already exists: " + email);
+            }
+
+            // Encrypt fingerprint template
+            byte[] encryptedTemplate = encryptionService.encrypt(fingerprintImage);
+
+            // Create user entity
+            UserEntity user = UserEntity.builder()
+                    .userId(userId)
+                    .username(username)
+                    .email(email)
+                    .department(department)
+                    .fingerprintTemplate(encryptedTemplate)
+                    .fingerprintImage(fingerprintImage)
+                    .qualityScore(qualityScore)
+                    .isActive(true)
+                    .failedAuthAttempts(0)
+                    .registrationDate(LocalDateTime.now())
+                    .registrationIp(ipAddress)
+                    .build();
+
+            // Save user
+            UserEntity savedUser = userRepository.save(user);
+
+            // Log registration
+            auditLogService.logEvent("REGISTRATION", userId, username, "register", 
+                                   "SUCCESS", null, null, ipAddress);
+
+            log.info("User registered successfully: {}", userId);
+            return savedUser;
+
+        } catch (Exception e) {
+            auditLogService.logEvent("REGISTRATION", userId, username, "register", 
+                                   "FAILURE", null, e.getMessage(), ipAddress);
+            throw new RuntimeException("Registration failed: " + e.getMessage(), e);
+        }
     }
 
-    public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id);
+    /**
+     * Get user by ID
+     */
+    public Optional<UserEntity> getUserById(String userId) {
+        return userRepository.findByUserId(userId);
     }
 
-    public Optional<User> getUserByUsername(String username) {
+    /**
+     * Get user by username
+     */
+    public Optional<UserEntity> getUserByUsername(String username) {
         return userRepository.findByUsername(username);
     }
 
-    public Optional<User> getUserByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
-
-    public User updateBiometricTemplate(Long userId, String encryptedTemplate) throws Exception {
-        Optional<User> userOpt = userRepository.findById(userId);
-        if (!userOpt.isPresent()) {
-            throw new IllegalArgumentException("User not found");
-        }
-
-        User user = userOpt.get();
-        user.setEncryptedBiometricTemplate(encryptedTemplate);
-        user.setBiometricTemplateUpdatedAt(LocalDateTime.now());
+    /**
+     * Update user
+     */
+    public UserEntity updateUser(UserEntity user) {
         user.setUpdatedAt(LocalDateTime.now());
-
         return userRepository.save(user);
     }
 
-    public User enableUser(Long userId) throws Exception {
-        Optional<User> userOpt = userRepository.findById(userId);
-        if (!userOpt.isPresent()) {
-            throw new IllegalArgumentException("User not found");
+    /**
+     * Get all users
+     */
+    public List<UserEntity> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    /**
+     * Get active users
+     */
+    public List<UserEntity> getActiveUsers() {
+        return userRepository.findByIsActive(true);
+    }
+
+    /**
+     * Lock user account
+     */
+    public void lockUser(String userId) {
+        Optional<UserEntity> userOpt = userRepository.findByUserId(userId);
+        if (userOpt.isPresent()) {
+            UserEntity user = userOpt.get();
+            user.setIsActive(false);
+            userRepository.save(user);
+            log.info("User locked: {}", userId);
         }
-
-        User user = userOpt.get();
-        user.setStatus(UserStatus.ACTIVE);
-        user.setUpdatedAt(LocalDateTime.now());
-
-        return userRepository.save(user);
     }
 
-    public User disableUser(Long userId) throws Exception {
-        Optional<User> userOpt = userRepository.findById(userId);
-        if (!userOpt.isPresent()) {
-            throw new IllegalArgumentException("User not found");
+    /**
+     * Unlock user account
+     */
+    public void unlockUser(String userId) {
+        Optional<UserEntity> userOpt = userRepository.findByUserId(userId);
+        if (userOpt.isPresent()) {
+            UserEntity user = userOpt.get();
+            user.setIsActive(true);
+            user.setFailedAuthAttempts(0);
+            userRepository.save(user);
+            log.info("User unlocked: {}", userId);
         }
-
-        User user = userOpt.get();
-        user.setStatus(UserStatus.INACTIVE);
-        user.setUpdatedAt(LocalDateTime.now());
-
-        return userRepository.save(user);
     }
 
-    public User lockUser(Long userId) throws Exception {
-        Optional<User> userOpt = userRepository.findById(userId);
-        if (!userOpt.isPresent()) {
-            throw new IllegalArgumentException("User not found");
+    /**
+     * Increment failed auth attempts
+     */
+    public void incrementFailedAttempts(String userId) {
+        Optional<UserEntity> userOpt = userRepository.findByUserId(userId);
+        if (userOpt.isPresent()) {
+            UserEntity user = userOpt.get();
+            user.setFailedAuthAttempts(user.getFailedAuthAttempts() + 1);
+            user.setLastAuthAttemptTime(LocalDateTime.now());
+            userRepository.save(user);
         }
-
-        User user = userOpt.get();
-        user.setStatus(UserStatus.LOCKED);
-        user.setUpdatedAt(LocalDateTime.now());
-
-        return userRepository.save(user);
     }
 
-    public List<UserDTO> getAllUsers() {
-        return userRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    /**
+     * Reset failed auth attempts
+     */
+    public void resetFailedAttempts(String userId) {
+        Optional<UserEntity> userOpt = userRepository.findByUserId(userId);
+        if (userOpt.isPresent()) {
+            UserEntity user = userOpt.get();
+            user.setFailedAuthAttempts(0);
+            userRepository.save(user);
+        }
     }
 
-    public List<UserDTO> getUsersByRole(UserRole role) {
-        return userRepository.findByRole(role).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    /**
+     * Get total user count
+     */
+    public long getTotalUsers() {
+        return userRepository.count();
     }
 
-    public List<UserDTO> getUsersByStatus(UserStatus status) {
-        return userRepository.findByStatus(status).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-    }
-
-    private UserDTO convertToDTO(User user) {
-        UserDTO dto = new UserDTO();
-        dto.setId(user.getId());
-        dto.setUsername(user.getUsername());
-        dto.setEmail(user.getEmail());
-        dto.setFirstName(user.getFirstName());
-        dto.setLastName(user.getLastName());
-        dto.setRole(user.getRole().toString());
-        dto.setStatus(user.getStatus().toString());
-        dto.setCreatedAt(user.getCreatedAt());
-        dto.setBiometricTemplateUpdatedAt(user.getBiometricTemplateUpdatedAt());
-        return dto;
+    /**
+     * Delete user
+     */
+    public void deleteUser(String userId) {
+        Optional<UserEntity> userOpt = userRepository.findByUserId(userId);
+        if (userOpt.isPresent()) {
+            userRepository.delete(userOpt.get());
+            log.info("User deleted: {}", userId);
+        }
     }
 }

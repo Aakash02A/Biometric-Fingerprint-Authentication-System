@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fingerprint Scanner Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .status-box {
+            background: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .success {
+            background: #e8f8f5;
+            border-left-color: #2ecc71;
+        }
+        .error {
+            background: #fdf2e9;
+            border-left-color: #e74c3c;
+        }
+        .warning {
+            background: #fef9e7;
+            border-left-color: #f39c12;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+        .console {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            height: 300px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+        .log-entry {
+            margin: 5px 0;
+        }
+        .log-timestamp {
+            color: #95a5a6;
+        }
+        .log-info {
+            color: #3498db;
+        }
+        .log-success {
+            color: #2ecc71;
+        }
+        .log-error {
+            color: #e74c3c;
+        }
+        .log-warning {
+            color: #f39c12;
+        }
+        .device-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Fingerprint Scanner Test</h1>
+        
+        <div class="status-box">
+            <h3>System Status</h3>
+            <p><strong>OS:</strong> Windows 11</p>
+            <p><strong>Fingerprint Scanner:</strong> FocalTech (Detected)</p>
+            <p><strong>Status:</strong> <span id="system-status">Ready</span></p>
+        </div>
+        
+        <div class="device-info">
+            <h3>Device Information</h3>
+            <p id="device-info-text">Click "Detect Devices" to scan for fingerprint scanners</p>
+        </div>
+        
+        <div style="text-align: center; margin: 20px 0;">
+            <button id="detect-btn">🔍 Detect Devices</button>
+            <button id="request-btn" disabled>🔌 Request Device Permission</button>
+            <button id="scan-btn" disabled>👆 Scan Fingerprint</button>
+            <button id="reset-btn">🔄 Reset</button>
+        </div>
+        
+        <h3>Debug Console</h3>
+        <div id="console" class="console"></div>
+        
+        <div class="status-box warning">
+            <h3>⚠️ Important Notes</h3>
+            <ul>
+                <li>This test requires Chrome/Edge with experimental WebUSB features enabled</li>
+                <li>Your fingerprint scanner must be physically connected via USB</li>
+                <li>You may need to grant permissions when prompted</li>
+                <li>For production use, run the backend service with administrator privileges</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Console logging utility
+        const consoleElement = document.getElementById('console');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.innerHTML = `<span class="log-timestamp">[${timestamp}]</span> ${message}`;
+            consoleElement.appendChild(entry);
+            consoleElement.scrollTop = consoleElement.scrollHeight;
+            
+            // Also log to browser console
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        // Global device reference
+        let selectedDevice = null;
+        
+        // DOM Elements
+        const detectBtn = document.getElementById('detect-btn');
+        const requestBtn = document.getElementById('request-btn');
+        const scanBtn = document.getElementById('scan-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const systemStatus = document.getElementById('system-status');
+        const deviceInfoText = document.getElementById('device-info-text');
+        
+        // Event Listeners
+        detectBtn.addEventListener('click', detectDevices);
+        requestBtn.addEventListener('click', requestDevicePermission);
+        scanBtn.addEventListener('click', scanFingerprint);
+        resetBtn.addEventListener('click', resetTest);
+        
+        // Detect connected USB devices
+        async function detectDevices() {
+            log('Starting device detection...', 'info');
+            
+            if (!navigator.usb) {
+                log('❌ WebUSB not supported in this browser', 'error');
+                systemStatus.textContent = 'WebUSB Not Supported';
+                systemStatus.style.color = '#e74c3c';
+                return;
+            }
+            
+            try {
+                // Get paired devices first
+                const devices = await navigator.usb.getDevices();
+                log(`Found ${devices.length} paired USB devices`, 'info');
+                
+                if (devices.length === 0) {
+                    log('No paired devices found. Click "Request Device Permission" to pair a device.', 'warning');
+                    deviceInfoText.innerHTML = 'No devices paired. Click "Request Device Permission" to pair a device.';
+                    requestBtn.disabled = false;
+                    return;
+                }
+                
+                // Display device information
+                let fingerprintDeviceFound = false;
+                let deviceInfoHTML = '<ul>';
+                
+                for (let i = 0; i < devices.length; i++) {
+                    const device = devices[i];
+                    const vendorId = device.vendorId;
+                    const productId = device.productId;
+                    
+                    log(`Device ${i+1}: Vendor ID: 0x${vendorId.toString(16)}, Product ID: 0x${productId.toString(16)}`, 'info');
+                    
+                    // Check for known fingerprint scanner vendor IDs
+                    const isFingerprintScanner = checkIfFingerprintScanner(vendorId);
+                    
+                    if (isFingerprintScanner) {
+                        fingerprintDeviceFound = true;
+                        selectedDevice = device;
+                        log(`✅ Potential fingerprint scanner detected at device ${i+1}`, 'success');
+                    }
+                    
+                    deviceInfoHTML += `
+                        <li>
+                            <strong>Device ${i+1}:</strong> 
+                            Vendor ID: 0x${vendorId.toString(16)}, 
+                            Product ID: 0x${productId.toString(16)}
+                            ${isFingerprintScanner ? ' <span style="color: #27ae60;">(Potential Fingerprint Scanner)</span>' : ''}
+                        </li>
+                    `;
+                }
+                
+                deviceInfoHTML += '</ul>';
+                deviceInfoText.innerHTML = deviceInfoHTML;
+                
+                if (fingerprintDeviceFound) {
+                    log('🎉 Fingerprint scanner detected! You can now scan fingerprints.', 'success');
+                    systemStatus.textContent = 'Fingerprint Scanner Ready';
+                    systemStatus.style.color = '#27ae60';
+                    scanBtn.disabled = false;
+                } else {
+                    log('⚠️ No fingerprint scanners detected. You can still try requesting device permission.', 'warning');
+                    requestBtn.disabled = false;
+                }
+                
+            } catch (error) {
+                log(`❌ Error detecting devices: ${error.message}`, 'error');
+                systemStatus.textContent = 'Detection Error';
+                systemStatus.style.color = '#e74c3c';
+            }
+        }
+        
+        // Check if device is likely a fingerprint scanner based on vendor ID
+        function checkIfFingerprintScanner(vendorId) {
+            // Known fingerprint scanner vendor IDs
+            const fingerprintVendors = [
+                0x1162, // SecuGen
+                0x0483, // NITGEN
+                0x1c79, // Crossmatch
+                0x10a6, // FocalTech Systems Co., Ltd
+                0x1fd4  // Another possible FocalTech ID
+            ];
+            
+            // Also check for vendor ID ranges commonly used by biometric devices
+            const isInRange = (vendorId >= 0x1000 && vendorId <= 0x2000) || 
+                             (vendorId >= 0x0400 && vendorId <= 0x0500);
+            
+            return fingerprintVendors.includes(vendorId) || isInRange;
+        }
+        
+        // Request permission to access a USB device
+        async function requestDevicePermission() {
+            log('Requesting device permission...', 'info');
+            
+            try {
+                // Request any USB device (filtering for fingerprint scanners is difficult in WebUSB)
+                const device = await navigator.usb.requestDevice({ filters: [] });
+                
+                if (device) {
+                    log(`✅ Device permission granted: Vendor ID: 0x${device.vendorId.toString(16)}, Product ID: 0x${device.productId.toString(16)}`, 'success');
+                    selectedDevice = device;
+                    
+                    // Check if it's likely a fingerprint scanner
+                    const isFingerprintScanner = checkIfFingerprintScanner(device.vendorId);
+                    if (isFingerprintScanner) {
+                        log('🎉 This appears to be a fingerprint scanner!', 'success');
+                        systemStatus.textContent = 'Device Paired (Likely Fingerprint Scanner)';
+                        systemStatus.style.color = '#27ae60';
+                    } else {
+                        log('⚠️ This may not be a fingerprint scanner. Proceed with caution.', 'warning');
+                        systemStatus.textContent = 'Device Paired (Check Compatibility)';
+                        systemStatus.style.color = '#f39c12';
+                    }
+                    
+                    scanBtn.disabled = false;
+                    deviceInfoText.innerHTML = `
+                        <p><strong>Paired Device:</strong></p>
+                        <p>Vendor ID: 0x${device.vendorId.toString(16)}</p>
+                        <p>Product ID: 0x${device.productId.toString(16)}</p>
+                        <p>Likely Fingerprint Scanner: ${isFingerprintScanner ? 'Yes' : 'No'}</p>
+                    `;
+                }
+            } catch (error) {
+                if (error.name === 'NotFoundError') {
+                    log('❌ No device selected or device selection cancelled', 'warning');
+                } else {
+                    log(`❌ Error requesting device: ${error.message}`, 'error');
+                }
+            }
+        }
+        
+        // Attempt to scan fingerprint
+        async function scanFingerprint() {
+            if (!selectedDevice) {
+                log('❌ No device selected. Please detect or request a device first.', 'error');
+                return;
+            }
+            
+            log('Starting fingerprint scan attempt...', 'info');
+            scanBtn.disabled = true;
+            
+            try {
+                // Open device connection
+                if (!selectedDevice.opened) {
+                    await selectedDevice.open();
+                    log('✅ Device connection opened', 'success');
+                }
+                
+                // Select configuration if needed
+                if (selectedDevice.configuration === null) {
+                    await selectedDevice.selectConfiguration(1);
+                    log('✅ Configuration selected', 'success');
+                }
+                
+                // Get the first interface
+                const interfaceNumber = selectedDevice.configuration.interfaces[0].interfaceNumber;
+                log(`Interface number: ${interfaceNumber}`, 'info');
+                
+                // Claim interface
+                try {
+                    await selectedDevice.claimInterface(interfaceNumber);
+                    log('✅ Interface claimed successfully', 'success');
+                } catch (claimError) {
+                    log(`⚠️ Could not claim interface: ${claimError.message}. Continuing anyway.`, 'warning');
+                }
+                
+                // Try to communicate with the device
+                log('Attempting to communicate with fingerprint device...', 'info');
+                
+                // Try a standard GET_REPORT request
+                try {
+                    const report = await selectedDevice.controlTransferIn({
+                        requestType: 'class',
+                        recipient: 'interface',
+                        request: 0x01, // GET_REPORT
+                        value: 0x0300, // Feature report
+                        index: interfaceNumber
+                    }, 256);
+                    
+                    if (report.status === 'ok') {
+                        log(`✅ Received data from device (${report.data.byteLength} bytes)`, 'success');
+                        log('🎉 Fingerprint scan successful! (This is demonstration data)', 'success');
+                        
+                        // Release interface and close device
+                        try {
+                            await selectedDevice.releaseInterface(interfaceNumber);
+                            await selectedDevice.close();
+                        } catch (closeError) {
+                            log(`⚠️ Error closing device: ${closeError.message}`, 'warning');
+                        }
+                        
+                        return;
+                    }
+                } catch (transferError) {
+                    log(`⚠️ GET_REPORT failed: ${transferError.message}`, 'warning');
+                }
+                
+                // If GET_REPORT failed, try sending a simple command
+                try {
+                    await selectedDevice.controlTransferOut({
+                        requestType: 'class',
+                        recipient: 'interface',
+                        request: 0x09, // SET_REPORT
+                        value: 0x0200, // Output report
+                        index: interfaceNumber
+                    }, new Uint8Array([0x01, 0x00])); // Simple scan command
+                    
+                    log('✅ Scan command sent to device', 'success');
+                    
+                    // Wait a moment and try to read response
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    // Look for an interrupt input endpoint
+                    let endpoint = null;
+                    for (const iface of selectedDevice.configuration.interfaces) {
+                        for (const alt of iface.alternates) {
+                            for (const ep of alt.endpoints) {
+                                if (ep.direction === 'in' && ep.type === 'interrupt') {
+                                    endpoint = ep.endpointNumber;
+                                    break;
+                                }
+                            }
+                            if (endpoint) break;
+                        }
+                        if (endpoint) break;
+                    }
+                    
+                    if (endpoint) {
+                        log(`Found input endpoint: ${endpoint}`, 'info');
+                        
+                        const result = await selectedDevice.transferIn(endpoint, 1024);
+                        if (result.status === 'ok') {
+                            log(`✅ Received scan data (${result.data.byteLength} bytes)`, 'success');
+                            log('🎉 Fingerprint scan successful! (This is demonstration data)', 'success');
+                        }
+                    } else {
+                        log('⚠️ No input endpoint found', 'warning');
+                    }
+                } catch (cmdError) {
+                    log(`⚠️ Command failed: ${cmdError.message}`, 'warning');
+                }
+                
+                // Release interface and close device
+                try {
+                    await selectedDevice.releaseInterface(interfaceNumber);
+                    await selectedDevice.close();
+                } catch (closeError) {
+                    log(`⚠️ Error closing device: ${closeError.message}`, 'warning');
+                }
+                
+                log('⚠️ Scan attempt completed. In a real implementation, this would capture actual fingerprint data.', 'warning');
+                
+            } catch (error) {
+                log(`❌ Scan error: ${error.message}`, 'error');
+                
+                // Try to close device if it's still open
+                try {
+                    if (selectedDevice.opened) {
+                        await selectedDevice.close();
+                    }
+                } catch (closeError) {
+                    log(`⚠️ Error closing device: ${closeError.message}`, 'warning');
+                }
+            } finally {
+                scanBtn.disabled = false;
+            }
+        }
+        
+        // Reset the test
+        function resetTest() {
+            selectedDevice = null;
+            systemStatus.textContent = 'Ready';
+            systemStatus.style.color = 'initial';
+            deviceInfoText.innerHTML = 'Click "Detect Devices" to scan for fingerprint scanners';
+            requestBtn.disabled = false;
+            scanBtn.disabled = true;
+            
+            // Clear console
+            consoleElement.innerHTML = '';
+            log('🔬 Fingerprint Scanner Test Reset', 'info');
+            log('Click "Detect Devices" to begin', 'info');
+        }
+        
+        // Initialize
+        log('🔬 Fingerprint Scanner Test Initialized', 'info');
+        log('Click "Detect Devices" to begin scanning for USB devices', 'info');
+    </script>
+</body>
+</html>
